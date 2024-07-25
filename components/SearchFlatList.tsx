@@ -1,8 +1,8 @@
-import React from 'react';
-import {FlatList, Platform, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {FlatList, Platform, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View} from 'react-native';
 import {Link} from "expo-router";
 import {openBrowserAsync} from "expo-web-browser";
-import {FilterValues, ItemDataCast} from "@/components/FilterJSONFile";
+import {FilterJSONFile, FilterValues, ItemDataCast} from "@/components/FilterJSONFile";
 
 
 type ListProps = {
@@ -14,6 +14,7 @@ function dateToString(listDate: string){
     const date = new Date(listDate);
     return date.toLocaleString('en-UK');
 }
+
 type ItemProps = {
     item: ItemDataCast;
     itemFilters?: FilterValues;
@@ -22,31 +23,40 @@ type ItemProps = {
 };
 
 function Items ({item, onPress ,itemFilters}: ItemProps) {
+    const [showAlert, setShowAlert] = useState(false)
+    const [showSource, setShowSource] = useState(false)
+    const [showEntity, setShowEntity] = useState(false)
+
+    //displays search highlights if related field is searched
     if (itemFilters != undefined) {
-        const Ele = () => <><div>Hello {name} </div></>;
-        const ItemTest = ({item}: ItemProps) => (
-            <Text numberOfLines={1} style={[styles.itemDate]}>Published by {item.source} on: {dateToString(item.alertedDate)}</Text>
-        );
-        const alertItem = <ItemAlert filterAlert={itemFilters.filterAlert} filterEntity={itemFilters.filterAlert} filterSource={itemFilters.filterAlert}/>
-        return <TouchableOpacity onPress={onPress} style={[styles.item]}>
-            <Text numberOfLines={1} style={[styles.title]}>{item.title}</Text>
-            itemTest
-        </TouchableOpacity>
+        const isAlert = () => {
+            setShowAlert(itemFilters.filterAlert !== undefined)
+        }
+        const isSource = () => {
+            setShowSource(itemFilters.filterSource !== undefined)
+        }
+        const isEntity = () => {
+            setShowEntity(itemFilters.filterEntity !== undefined)
+        }
+
     }
-}
-const Item = ({item, onPress ,itemFilters}: ItemProps) => (
-    <TouchableOpacity onPress={onPress} style={[styles.item]}>
+    return <TouchableOpacity onPress={onPress} style={[styles.item]}>
         <Text numberOfLines={1} style={[styles.title]}>{item.title}</Text>
+        { true ? <ItemSource item={item}/> : null }
     </TouchableOpacity>
+}
+
+const ItemSource = ({item}: ItemProps) => (
+    <Text style={[styles.itemDate]}>Published by <Text style={[styles.itemHighlight]}>{item.source}</Text></Text>
 );
 
 const ItemSubtitle = ({item}: ItemProps) => (
     <Text numberOfLines={1} style={[styles.itemDate]}>Published by {item.source} on: {dateToString(item.alertedDate)}</Text>
 );
 
-function ItemAlert ({filterEntity, filterSource, filterAlert}: FilterValues) {
-    if (filterAlert != undefined) {
-        return <Text numberOfLines={1} style={[styles.itemHighlight]}>Alert {filterSource}</Text>
+function ItemAlert ({item, onPress ,itemFilters}: ItemProps, inheritStyle: StyleProp<TextStyle>) {
+    if (itemFilters != undefined) {
+        return <Text numberOfLines={1} style={inheritStyle}>Related Alert {itemFilters.filterAlert}</Text>
     }
 }
 
@@ -85,8 +95,9 @@ export function SearchFlatList({data, filters}: ListProps){
             );
         } else {
             return (
-                <Item
+                <Items
                     item={item}
+                    itemFilters={filters}
                     onPress={() => setSelectedId(item.documentId)}
                 />
             );
@@ -125,14 +136,23 @@ const styles = StyleSheet.create({
         backgroundColor: 'grey',
     },
     itemDate: {
-        color: 'white',
+        color: 'black',
         fontSize: 11,
         padding: 2,
         textAlign: 'right',
         paddingRight: 6
     },
     itemHighlight: {
-        color: 'purple',
+        color: 'black',
+        alignSelf: 'flex-start',
+        backgroundColor: 'lightblue',
+        fontSize: 11,
+        padding: 2,
+        textAlign: 'right',
+        paddingRight: 6
+    },
+    itemDateSelected: {
+        color: 'white',
         fontSize: 11,
         padding: 2,
         textAlign: 'right',
