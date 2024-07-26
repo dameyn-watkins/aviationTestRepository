@@ -66,9 +66,44 @@ export function initData (): ItemDataCast[]  {
     })
     return avList;
 }
+/*
+    iterates over entity highlights and related data to find any entities matching filter value
+ */
+export function GetFilteredEntity(filterValue: string, sentenceList: SentenceData[]) {
+    let entityNames: string[] = [];
+    sentenceList.forEach(sentence => {
+        sentence.entityHighlights.forEach(entityHighlight => {
+            if(entityHighlight.toLowerCase().includes(filterValue.toLowerCase())){
+                entityNames.push(entityHighlight);
+            }
+        })
+        sentence.relatedEntities.forEach(relatedEntity => {
+            if(relatedEntity.toLowerCase().includes(filterValue.toLowerCase())){
+                entityNames.push(relatedEntity);
+            }
+        })})
+
+    return  [...new Set(entityNames)];
+}
+
+/*
+    iterates over sentence data to find any Alerts matching filter value
+ */
+export function GetFilteredAlert(filterValue: string, sentenceList: SentenceData[]) {
+    let alertNames: string[] = [];
+    sentenceList.forEach(sentence => {
+        sentence.alertTypes.forEach(entityHighlight => {
+            if(entityHighlight.toLowerCase().includes(filterValue.toLowerCase())){
+                alertNames.push(entityHighlight);
+            }
+        })
+    })
+    return  [...new Set(alertNames)];
+}
 
 /*
     gets all unique names for filtering from article sources, alerts and entities
+    this ended up unused as the list was massive and it would look awful to put all unique values into a view
  */
 export function GetUniqueFields(data: ItemDataCast[]) {
     let uniqueSources: string[] = [];

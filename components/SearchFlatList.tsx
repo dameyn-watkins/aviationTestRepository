@@ -2,7 +2,13 @@ import React, {useEffect, useState} from 'react';
 import {FlatList, Platform, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View} from 'react-native';
 import {Link} from "expo-router";
 import {openBrowserAsync} from "expo-web-browser";
-import {FilterJSONFile, FilterValues, ItemDataCast} from "@/components/FilterJSONFile";
+import {
+    FilterJSONFile,
+    FilterValues,
+    GetFilteredAlert,
+    GetFilteredEntity,
+    ItemDataCast
+} from "@/components/FilterJSONFile";
 
 
 type ListProps = {
@@ -28,7 +34,6 @@ type ItemProps = {
     onPress?: () => void;
 };
 
-
 function Items ({item, onPress ,itemFilters, showSource, showAlert, showEntity}: UnselectedItem) {
     return <TouchableOpacity onPress={onPress} style={[styles.item]}>
             <Text numberOfLines={1} style={[styles.title]}>{item.title}</Text>
@@ -40,24 +45,28 @@ function Items ({item, onPress ,itemFilters, showSource, showAlert, showEntity}:
 }
 
 const ItemSource = ({item}: ItemProps) => (
-    <Text style={[styles.itemDate]}>Published by <Text style={[styles.itemHighlight]}>{item.source}</Text></Text>
+    <Text style={[styles.itemDate]}>Published by <Text style={[styles.itemSource]}>{item.source}</Text></Text>
 );
 
-const ItemAlert = ({item, itemFilters}: ItemProps) => (
-    <Text style={[styles.itemDate]}>Matched alert: <Text style={[styles.itemHighlight]}>{itemFilters?.filterAlert}</Text></Text>
-);
+function ItemAlert ({item, itemFilters}: ItemProps) {
+    if(!!itemFilters?.filterAlert) {
+        return <Text style={[styles.itemDate]}>Tags/Alerts: <Text
+            style={[styles.itemAlert]}>{GetFilteredAlert(itemFilters.filterAlert, item.sentences)}</Text></Text>
+    }
+}
 
-const ItemEntity = ({item, itemFilters}: ItemProps) => (
-    <Text style={[styles.itemDate]}>Related to: <Text style={[styles.itemHighlight]}>{itemFilters?.filterEntity}</Text></Text>
-);
+function ItemEntity ({item, itemFilters}: ItemProps) {
+    if(!!itemFilters?.filterEntity) {
+        return <Text style={[styles.itemDate]}>Related to: <Text
+            style={[styles.itemEntity]}>{GetFilteredEntity(itemFilters.filterEntity, item.sentences)}</Text></Text>
+    }
+}
 
 const ItemSubtitle = ({item}: ItemProps) => (
     <Text numberOfLines={1} style={[styles.itemDate]}>Published by {item.source} on: {dateToString(item.alertedDate)}</Text>
 );
 
-
-
-const ItemSelected = ({item, }: ItemProps) => (
+const ItemSelected = ({item}: ItemProps) => (
     <TouchableOpacity  style={[styles.itemSelected]}>
         <Text style={[styles.titleSelected]}>{item.title}</Text>
         <ItemSubtitle item={item}/>
@@ -84,8 +93,6 @@ export function SearchFlatList({data, filters}: ListProps){
     const [showAlert, setShowAlert] = useState(false)
     const [showSource, setShowSource] = useState(false)
     const [showEntity, setShowEntity] = useState(false)
-
-    console.log("filter values alert: " + filters?.filterAlert + ", source: " + filters?.filterSource + ", Entity: " +filters?.filterEntity)
 
     //displays search highlights if related field is searched
     useEffect(() => {
@@ -157,10 +164,28 @@ const styles = StyleSheet.create({
         textAlign: 'right',
         paddingRight: 6
     },
-    itemHighlight: {
+    itemSource: {
         color: 'black',
         alignSelf: 'flex-start',
         backgroundColor: 'lightblue',
+        fontSize: 11,
+        padding: 2,
+        textAlign: 'right',
+        paddingRight: 6
+    },
+    itemEntity: {
+        color: 'black',
+        alignSelf: 'flex-start',
+        backgroundColor: '#9bf2a6',
+        fontSize: 11,
+        padding: 2,
+        textAlign: 'right',
+        paddingRight: 6
+    },
+    itemAlert: {
+        color: 'black',
+        alignSelf: 'flex-start',
+        backgroundColor: '#f29594',
         fontSize: 11,
         padding: 2,
         textAlign: 'right',
@@ -174,8 +199,7 @@ const styles = StyleSheet.create({
         paddingRight: 6
     },
     itemSelected: {
-        flex: 0.3,
-        backgroundColor: 'gray',
+        backgroundColor: '#43578a',
         borderWidth: 5,
         borderRadius: 3
     },
