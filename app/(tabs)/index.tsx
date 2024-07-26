@@ -1,7 +1,7 @@
 import {
   StyleSheet,
   View,
-  ImageBackground, Button, TextInput
+  ImageBackground, TextInput
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {FilterJSONFile, FilterValues, initData, ItemDataCast} from "@/components/FilterJSONFile";
@@ -11,6 +11,8 @@ import {ThemedText} from "@/components/ThemedText";
 import {SearchFlatList} from "@/components/SearchFlatList";
 
 const initialData = initData();
+
+
 
 export default function HomeScreen() {
   const [filters, setFilters] = useState<FilterValues>();
@@ -54,6 +56,7 @@ export default function HomeScreen() {
     return
 
   }
+  //TODO: should change to input instead of textInput and separate into own file that passes filter hooks and has a clear text button
 
   return (
       <View style={{flex: 1, backgroundColor: 'white'}}>

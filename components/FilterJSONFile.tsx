@@ -35,6 +35,13 @@ export interface SentenceData {
     text: string;
 }
 
+export interface CommentData {
+    comment: string;
+    confidenceScore: number;
+    entities: string[];
+
+}
+
 export interface UniqueFilterValues {
     entities: string[];
     alerts: string[];
@@ -84,6 +91,34 @@ export function GetFilteredEntity(filterValue: string, sentenceList: SentenceDat
         })})
 
     return  [...new Set(entityNames)];
+}
+
+/*
+    iterates over entity highlights and related data to find any entities matching filter value
+ */
+export function GetFilteredComments(sentence: SentenceData) {
+    let entityValues: CommentData = {
+        entities: [],
+        comment: "",
+        confidenceScore: 0
+    };
+        let entityNames: string[] = [];
+        sentence.entityHighlights.forEach(entityHighlight => {
+            if(!entityNames.includes(entityHighlight)){
+                entityNames.push(entityHighlight);
+            }
+        })
+        entityValues.comment = sentence.text;
+        entityValues.entities = entityNames;
+        entityValues.confidenceScore = sentence.confidenceScore;
+
+        //from reading the JSON looks like the highlighted Entity is what relates to text comments
+        // sentence.relatedEntities.forEach(relatedEntity => {
+        //     if(!entityNames.includes(relatedEntity)){
+        //         entityNames.push(relatedEntity);
+        //     }
+        //})typ
+    return  entityValues;
 }
 
 /*

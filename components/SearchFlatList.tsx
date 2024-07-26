@@ -1,11 +1,10 @@
 import React, {useEffect, useState} from 'react';
-import {FlatList, Platform, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View} from 'react-native';
+import {FlatList, Platform, StyleSheet, Text,TouchableOpacity, View} from 'react-native';
 import {Link} from "expo-router";
 import {openBrowserAsync} from "expo-web-browser";
 import {
-    FilterJSONFile,
     FilterValues,
-    GetFilteredAlert,
+    GetFilteredAlert, GetFilteredComments,
     GetFilteredEntity,
     ItemDataCast
 } from "@/components/FilterJSONFile";
@@ -34,6 +33,9 @@ type ItemProps = {
     onPress?: () => void;
 };
 
+/*
+    renders unselected items and displays related search filters
+ */
 function Items ({item, onPress ,itemFilters, showSource, showAlert, showEntity}: UnselectedItem) {
     return <TouchableOpacity onPress={onPress} style={[styles.item]}>
             <Text numberOfLines={1} style={[styles.title]}>{item.title}</Text>
@@ -61,15 +63,38 @@ function ItemEntity ({item, itemFilters}: ItemProps) {
             style={[styles.itemEntity]}>{GetFilteredEntity(itemFilters.filterEntity, item.sentences)}</Text></Text>
     }
 }
+/*
+    creates an array from all comments and returns the value
+ */
+function ItemComments ({item}: ItemProps) {
+    const arrayOfComments = item.sentences.map((sentence) =>
+        <Text style={[styles.textSelected]}>
+            {GetFilteredComments(sentence).entities} :
+            "{GetFilteredComments(sentence).comment}"
+            Confidence: {GetFilteredComments(sentence).confidenceScore}
+        </Text>
+    );
+    return <View>{arrayOfComments}</View>
+}
+
+
+
+
 
 const ItemSubtitle = ({item}: ItemProps) => (
     <Text numberOfLines={1} style={[styles.itemDate]}>Published by {item.source} on: {dateToString(item.alertedDate)}</Text>
 );
 
+const separator = () => {
+    return ( <View style={styles.separator}/> )
+}
+
 const ItemSelected = ({item}: ItemProps) => (
     <TouchableOpacity  style={[styles.itemSelected]}>
         <Text style={[styles.titleSelected]}>{item.title}</Text>
-        <ItemSubtitle item={item}/>
+        <ItemSubtitle item={item} />
+        <ItemComments item={item} />
+        <Text style={[styles.textSelected]}>Read Full Article: </Text>
         <Link
             style={[styles.hrefLink]}
             target="_blank"
@@ -103,7 +128,7 @@ export function SearchFlatList({data, filters}: ListProps){
         }
     }, [filters]);
 
-    //two renderings for item selected and not selected. should be moved into a seperate file and combined
+    //two renderings for item selected and not selected. should be moved into a separate file and combined
     const renderItem = ({item}: {item: ItemDataCast}) => {
         if (item.documentId === selectedId){
             return (
@@ -129,6 +154,7 @@ export function SearchFlatList({data, filters}: ListProps){
         <FlatList
             data={data}
             maxToRenderPerBatch={20}
+            ItemSeparatorComponent={separator}
             renderItem={renderItem}
             keyExtractor={item => item.documentId}
         />
@@ -136,12 +162,6 @@ export function SearchFlatList({data, filters}: ListProps){
 }
 
 const styles = StyleSheet.create({
-    headerImage: {
-        color: '#808080',
-        bottom: -35,
-        left: -5,
-        position: 'absolute',
-    },
     hrefLink: {
         color: 'blue',
         fontSize: 10,
@@ -153,12 +173,11 @@ const styles = StyleSheet.create({
         marginVertical: 4,
         marginHorizontal: 4,
     },
-    top: {
-        flex: 0.3,
-        backgroundColor: 'grey',
+    separator: {
+        height: 2,
+        backgroundColor: '#828282'
     },
     itemDate: {
-        color: 'black',
         fontSize: 11,
         padding: 2,
         textAlign: 'right',
@@ -167,7 +186,7 @@ const styles = StyleSheet.create({
     itemSource: {
         color: 'black',
         alignSelf: 'flex-start',
-        backgroundColor: 'lightblue',
+        backgroundColor: '#f2cf6f',
         fontSize: 11,
         padding: 2,
         textAlign: 'right',
@@ -199,9 +218,9 @@ const styles = StyleSheet.create({
         paddingRight: 6
     },
     itemSelected: {
-        backgroundColor: '#43578a',
-        borderWidth: 5,
-        borderRadius: 3
+        backgroundColor: '#87aae6',
+        borderWidth: 3,
+        borderRadius: 1
     },
     title: {
         fontSize: 15,
@@ -209,8 +228,14 @@ const styles = StyleSheet.create({
     },
     titleSelected: {
         fontSize: 22,
+        textAlign: 'center',
         color: 'white',
         margin: 6
+    },
+    textSelected: {
+        fontSize: 12,
+        color: '#3d3d3d',
+        margin: 3
     },
     titleContainer: {
 
