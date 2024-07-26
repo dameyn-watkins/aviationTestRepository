@@ -15,6 +15,12 @@ function dateToString(listDate: string){
     return date.toLocaleString('en-UK');
 }
 
+interface UnselectedItem extends ItemProps {
+    showAlert: boolean;
+    showSource: boolean;
+    showEntity: boolean;
+}
+
 type ItemProps = {
     item: ItemDataCast;
     itemFilters?: FilterValues;
@@ -22,43 +28,34 @@ type ItemProps = {
     onPress?: () => void;
 };
 
-function Items ({item, onPress ,itemFilters}: ItemProps) {
-    const [showAlert, setShowAlert] = useState(false)
-    const [showSource, setShowSource] = useState(false)
-    const [showEntity, setShowEntity] = useState(false)
 
-    //displays search highlights if related field is searched
-    if (itemFilters != undefined) {
-        const isAlert = () => {
-            setShowAlert(itemFilters.filterAlert !== undefined)
-        }
-        const isSource = () => {
-            setShowSource(itemFilters.filterSource !== undefined)
-        }
-        const isEntity = () => {
-            setShowEntity(itemFilters.filterEntity !== undefined)
-        }
-
-    }
+function Items ({item, onPress ,itemFilters, showSource, showAlert, showEntity}: UnselectedItem) {
     return <TouchableOpacity onPress={onPress} style={[styles.item]}>
-        <Text numberOfLines={1} style={[styles.title]}>{item.title}</Text>
-        { true ? <ItemSource item={item}/> : null }
-    </TouchableOpacity>
+            <Text numberOfLines={1} style={[styles.title]}>{item.title}</Text>
+            { showSource ? <ItemSource item={item}/> : null }
+            { showAlert ? <ItemAlert item={item} itemFilters={itemFilters}/> : null }
+            { showEntity ? <ItemEntity item={item} itemFilters={itemFilters}/> : null }
+        </TouchableOpacity>
+
 }
 
 const ItemSource = ({item}: ItemProps) => (
     <Text style={[styles.itemDate]}>Published by <Text style={[styles.itemHighlight]}>{item.source}</Text></Text>
 );
 
+const ItemAlert = ({item, itemFilters}: ItemProps) => (
+    <Text style={[styles.itemDate]}>Matched alert: <Text style={[styles.itemHighlight]}>{itemFilters?.filterAlert}</Text></Text>
+);
+
+const ItemEntity = ({item, itemFilters}: ItemProps) => (
+    <Text style={[styles.itemDate]}>Related to: <Text style={[styles.itemHighlight]}>{itemFilters?.filterEntity}</Text></Text>
+);
+
 const ItemSubtitle = ({item}: ItemProps) => (
     <Text numberOfLines={1} style={[styles.itemDate]}>Published by {item.source} on: {dateToString(item.alertedDate)}</Text>
 );
 
-function ItemAlert ({item, onPress ,itemFilters}: ItemProps, inheritStyle: StyleProp<TextStyle>) {
-    if (itemFilters != undefined) {
-        return <Text numberOfLines={1} style={inheritStyle}>Related Alert {itemFilters.filterAlert}</Text>
-    }
-}
+
 
 const ItemSelected = ({item, }: ItemProps) => (
     <TouchableOpacity  style={[styles.itemSelected]}>
@@ -84,7 +81,22 @@ const ItemSelected = ({item, }: ItemProps) => (
 
 export function SearchFlatList({data, filters}: ListProps){
     const [selectedId, setSelectedId] = React.useState<string>();
+    const [showAlert, setShowAlert] = useState(false)
+    const [showSource, setShowSource] = useState(false)
+    const [showEntity, setShowEntity] = useState(false)
 
+    console.log("filter values alert: " + filters?.filterAlert + ", source: " + filters?.filterSource + ", Entity: " +filters?.filterEntity)
+
+    //displays search highlights if related field is searched
+    useEffect(() => {
+        if (filters != undefined) {
+            setShowAlert(!!filters.filterAlert)
+            setShowSource(!!filters.filterSource)
+            setShowEntity(!!filters.filterEntity)
+        }
+    }, [filters]);
+
+    //two renderings for item selected and not selected. should be moved into a seperate file and combined
     const renderItem = ({item}: {item: ItemDataCast}) => {
         if (item.documentId === selectedId){
             return (
@@ -98,6 +110,9 @@ export function SearchFlatList({data, filters}: ListProps){
                 <Items
                     item={item}
                     itemFilters={filters}
+                    showAlert={showAlert}
+                    showSource={showSource}
+                    showEntity={showEntity}
                     onPress={() => setSelectedId(item.documentId)}
                 />
             );

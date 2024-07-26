@@ -112,32 +112,49 @@ export function GetUniqueFields(data: ItemDataCast[]) {
 export function FilterJSONFile(unfilteredData: ItemDataCast[], filters: FilterValues): ItemDataCast[] {
     let filteredData = unfilteredData;
 
-    if (filters.filterSource !== undefined){
+    if (filters.filterSource){
         let source = filters.filterSource;
         filteredData = filteredData.filter(itemData => itemData.source.includes(source));
     }
 
-    if (filters.filterEntity !== undefined){
+    if (filters.filterEntity){
         let entity = filters.filterEntity;
-        filteredData = filteredData.filter(item => item.sentences.some(sentences => {
+        filteredData = filteredData.filter(itemData => itemData.sentences.some(sentences => {
             //checks if the entity is mentioned in highlights or related entities
-            return (sentences.entityHighlights.includes(entity)) || (sentences.relatedEntities.includes(entity));
+            let foundEntity: boolean = false;
+            sentences.entityHighlights.forEach( entityItem => {
+                if(entityItem.toLowerCase().includes(entity.toLowerCase())){
+                    foundEntity = true;
+                }
+            })
+            sentences.relatedEntities.forEach( entityItem => {
+                if(entityItem.toLowerCase().includes(entity.toLowerCase())){
+                    foundEntity = true;
+                }
+            })
+            return foundEntity;
         }));
     }
 
-    if (filters.filterAlert !== undefined){
+    if (filters.filterAlert){
         let alert = filters.filterAlert;
-        filteredData = filteredData.filter(item => item.sentences.some(sentences => {
+        filteredData = filteredData.filter(itemData => itemData.sentences.some(sentences => {
             //checks if the entity is mentioned in highlights or related entities
-            return (sentences.alertTypes.includes(alert));
+            let foundAlert: boolean = false;
+            sentences.alertTypes.forEach( alertItem => {
+                if(alertItem.toLowerCase().includes(alert.toLowerCase())){
+                    foundAlert = true;
+                }
+            })
+            return foundAlert;
         }));
     }
 
     return filteredData;
 }
-
-export function sortJSONFile(aviationData: ItemDataCast[]) {
-
-}
+// TODO: add sort
+// export function sortJSONFile(aviationData: ItemDataCast[]) {
+//
+// }
 
 
